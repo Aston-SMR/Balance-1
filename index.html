@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>紅藍平衡紀錄</title>
+<style>
+* { box-sizing: border-box; }
+body {
+margin: 0;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+background: #0f1115;
+color: #fff;
+padding: 14px;
+}
+.wrap {
+max-width: 760px;
+margin: 0 auto;
+}
+.card {
+background: #171b22;
+border: 1px solid #2a3240;
+border-radius: 16px;
+padding: 14px;
+margin-bottom: 14px;
+box-shadow: 0 6px 18px rgba(0,0,0,.18);
+}
+.title {
+font-size: 24px;
+font-weight: 800;
+text-align: center;
+margin-bottom: 12px;
+letter-spacing: 1px;
+}
+.sub {
+font-size: 14px;
+color: #aeb7c6;
+margin-bottom: 10px;
+}
+.dots {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 10px;
+margin-bottom: 12px;
+}
+.dot-box {
+background: #11151b;
+border: 1px solid #2a3240;
+border-radius: 14px;
+padding: 12px 10px;
+text-align: center;
+}
+.dot-label {
+font-size: 13px;
+color: #b8c1cf;
+margin-bottom: 8px;
+font-weight: 700;
+}
+.dot-view {
+width: 50px;
+height: 50px;
+border-radius: 50%;
+margin: 0 auto 10px;
+border: 3px solid #3a4557;
+background: #2b3240;
+}
+.dot-view.red { background: #e53935; border-color: #ff9c9a; }
+.dot-view.blue { background: #1e88e5; border-color: #9fceff; }
+
+.btn-row {
+display: flex;
+gap: 8px;
+justify-content: center;
+}
+button {
+border: none;
+border-radius: 12px;
+padding: 10px 12px;
+font-size: 14px;
+font-weight: 800;
+cursor: pointer;
+}
+.red-btn {
+background: #d73838;
+color: #fff;
+}
+.blue-btn {
+background: #1976d2;
+color: #fff;
+}
+.gray-btn {
+background: #3b4352;
+color: #fff;
+}
+.green-btn {
+background: #1f9d55;
+color: #fff;
+}
+.orange-btn {
+background: #d97706;
+color: #fff;
+}
+
+.predict-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+}
+.predict-box {
+background: #11151b;
+border: 1px solid #2a3240;
+border-radius: 14px;
+padding: 12px;
+}
+.predict-box h3 {
+margin: 0 0 8px;
+font-size: 16px;
+}
+.predict-line {
+font-size: 14px;
+margin: 6px 0;
+color: #d2d9e4;
+}
+
+.result-pill {
+display: inline-block;
+min-width: 66px;
+text-align: center;
+padding: 7px 10px;
+border-radius: 999px;
+font-weight: 900;
+margin-top: 6px;
+}
+.result-red { background: #e53935; color: #fff; }
+.result-blue { background: #1e88e5; color: #fff; }
+.result-none { background: #555f70; color: #fff; }
+
+.actual-row {
+display: flex;
+gap: 10px;
+align-items: center;
+flex-wrap: wrap;
+}
+.actual-row .label {
+font-size: 15px;
+font-weight: 800;
+color: #d9e0ea;
+}
+
+.stats {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 10px;
+}
+.stat-box {
+background: #11151b;
+border: 1px solid #2a3240;
+border-radius: 14px;
+padding: 12px;
+}
+.stat-title {
+font-size: 15px;
+font-weight: 800;
+margin-bottom: 8px;
+}
+.stat-line {
+font-size: 14px;
+color: #d2d9e4;
+margin: 4px 0;
+}
+
+.history-list {
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+.history-item {
+background: #11151b;
+border: 1px solid #2a3240;
+border-radius: 14px;
+padding: 12px;
+}
+.history-top {
+display: flex;
+justify-content: space-between;
+gap: 10px;
+align-items: center;
+margin-bottom: 8px;
+flex-wrap: wrap;
+}
+.round-badge {
+font-weight: 900;
+color: #ffd166;
+font-size: 14px;
+}
+.pattern-badge {
+font-weight: 900;
+font-size: 15px;
+letter-spacing: 1px;
+}
+.history-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 4px;
+font-size: 14px;
+color: #d2d9e4;
+}
+
+.ok { color: #22c55e; font-weight: 900; }
+.bad { color: #ef4444; font-weight: 900; }
+.na { color: #f59e0b; font-weight: 900; }
+
+.memory-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 10px;
+}
+.memory-item {
+background: #11151b;
+border: 1px solid #2a3240;
+border-radius: 12px;
+padding: 10px;
+font-size: 14px;
+}
+.memory-item b {
+display: inline-block;
+min-width: 64px;
+}
+
+.footer-btns {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+.title { font-size: 22px; }
+.predict-grid,
+.stats,
+.memory-grid {
+grid-template-columns: 1fr;
+}
+button {
+padding: 10px 10px;
+font-size: 13px;
+}
+.dot-view {
+width: 44px;
+height: 44px;
+}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="title">紅藍平衡紀錄</div>
+
+<div class="card">
+<div class="sub">先選三個點點的顏色</div>
+
+<div class="dots">
+<div class="dot-box">
+<div class="dot-label">點 1</div>
+<div id="dotView0" class="dot-view"></div>
+<div class="btn-row">
+<button class="red-btn" onclick="setDot(0,'R')">紅</button>
+<button class="blue-btn" onclick="setDot(0,'B')">藍</button>
+</div>
+</div>
+
+<div class="dot-box">
+<div class="dot-label">點 2</div>
+<div id="dotView1" class="dot-view"></div>
+<div class="btn-row">
+<button class="red-btn" onclick="setDot(1,'R')">紅</button>
+<button class="blue-btn" onclick="setDot(1,'B')">藍</button>
+</div>
+</div>
+
+<div class="dot-box">
+<div class="dot-label">點 3</div>
+<div id="dotView2" class="dot-view"></div>
+<div class="btn-row">
+<button class="red-btn" onclick="setDot(2,'R')">紅</button>
+<button class="blue-btn" onclick="setDot(2,'B')">藍</button>
+</div>
+</div>
+</div>
+
+<div class="footer-btns">
+<button class="gray-btn" onclick="clearCurrent()">清除本次三點</button>
+</div>
+</div>
+
+<div class="card">
+<div class="sub">本次預測</div>
+<div class="predict-grid">
+<div class="predict-box">
+<h3>紀錄 1：紅藍平衡</h3>
+<div class="predict-line">規則：紅色多於藍色 → 下把打紅色；藍色多於紅色 → 下把打藍色</div>
+<div class="predict-line">目前三點：<span id="patternText1">-</span></div>
+<div id="pred1" class="result-pill result-none">未完成</div>
+</div>
+
+<div class="predict-box">
+<h3>紀錄 2：同組合記憶</h3>
+<div class="predict-line">規則：若這組合之前出現過，就顯示該組合上次後面實際開出的結果</div>
+<div class="predict-line">目前三點：<span id="patternText2">-</span></div>
+<div id="pred2" class="result-pill result-none">尚無紀錄</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="sub">本次實際結果（下把實際開什麼）</div>
+<div class="actual-row">
+<div class="label">請在三點完成後，按下實際開出的顏色：</div>
+<button class="red-btn" onclick="recordActual('R')">實際開紅</button>
+<button class="blue-btn" onclick="recordActual('B')">實際開藍</button>
+</div>
+</div>
+
+<div class="card">
+<div class="sub">統計</div>
+<div class="stats">
+<div class="stat-box">
+<div class="stat-title">紀錄 1：紅藍平衡</div>
+<div class="stat-line">總次數：<span id="stat1Total">0</span></div>
+<div class="stat-line">命中：<span id="stat1Hit">0</span></div>
+<div class="stat-line">失敗：<span id="stat1Miss">0</span></div>
+<div class="stat-line">命中率：<span id="stat1Rate">0%</span></div>
+</div>
+<div class="stat-box">
+<div class="stat-title">紀錄 2：同組合記憶</div>
+<div class="stat-line">有預測次數：<span id="stat2Total">0</span></div>
+<div class="stat-line">命中：<span id="stat2Hit">0</span></div>
+<div class="stat-line">失敗：<span id="stat2Miss">0</span></div>
+<div class="stat-line">命中率：<span id="stat2Rate">0%</span></div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="sub">八種組合記憶表（上次此組合後面開什麼）</div>
+<div id="memoryGrid" class="memory-grid"></div>
+</div>
+
+<div class="card">
+<div class="sub">歷史紀錄（最新在上面）</div>
+<div class="footer-btns" style="margin-bottom:10px;">
+<button class="orange-btn" onclick="clearHistory()">清空全部紀錄</button>
+</div>
+<div id="historyList" class="history-list"></div>
+</div>
+</div>
+
+<script>
+const STORAGE_KEY = "redBlueBalanceRecorder_v1";
+
+let state = {
+currentDots: [null, null, null],
+history: [],
+patternMemory: {
+RRR: null, RRB: null, RBR: null, RBB: null,
+BRR: null, BRB: null, BBR: null, BBB: null
+}
+};
+
+function saveState() {
+localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+const saved = localStorage.getItem(STORAGE_KEY);
+if (saved) {
+try {
+const parsed = JSON.parse(saved);
+if (parsed && typeof parsed === 'object') {
+state = parsed;
+}
+} catch (e) {}
+}
+}
+
+function colorText(v) {
+if (v === 'R') return '紅';
+if (v === 'B') return '藍';
+return '-';
+}
+
+function patternToText(pattern) {
+if (!pattern) return '-';
+return pattern.split('').map(colorText).join('');
+}
+
+function getCurrentPattern() {
+if (state.currentDots.some(v => !v)) return null;
+return state.currentDots.join('');
+}
+
+function getPred1(pattern) {
+if (!pattern) return null;
+const reds = [...pattern].filter(x => x === 'R').length;
+const blues = [...pattern].filter(x => x === 'B').length;
+if (reds > blues) return 'R';
+if (blues > reds) return 'B';
+return null;
+}
+
+function getPred2(pattern) {
+if (!pattern) return null;
+return state.patternMemory[pattern] || null;
+}
+
+function setDot(index, value) {
+state.currentDots[index] = value;
+saveState();
+render();
+}
+
+function clearCurrent() {
+state.currentDots = [null, null, null];
+saveState();
+render();
+}
+
+function recordActual(actual) {
+const pattern = getCurrentPattern();
+if (!pattern) {
+alert('請先完成三個點點。');
+return;
+}
+
+const pred1 = getPred1(pattern);
+const pred2 = getPred2(pattern);
+
+const row = {
+round: state.history.length + 1,
+pattern,
+pred1,
+pred2,
+actual,
+result1: pred1 === actual ? 'hit' : 'miss',
+result2: pred2 ? (pred2 === actual ? 'hit' : 'miss') : 'na',
+time: Date.now()
+};
+
+state.history.unshift(row);
+
+// 更新該組合下次參考記憶：記住這次該組合後面實際開出的結果
+state.patternMemory[pattern] = actual;
+
+// 清空本次輸入
+state.currentDots = [null, null, null];
+
+saveState();
+render();
+}
+
+function clearHistory() {
+if (!confirm('確定要清空全部歷史與記憶嗎？')) return;
+state = {
+currentDots: [null, null, null],
+history: [],
+patternMemory: {
+RRR: null, RRB: null, RBR: null, RBB: null,
+BRR: null, BRB: null, BBR: null, BBB: null
+}
+};
+saveState();
+render();
+}
+
+function calcStats() {
+const stat1Total = state.history.length;
+const stat1Hit = state.history.filter(x => x.result1 === 'hit').length;
+const stat1Miss = state.history.filter(x => x.result1 === 'miss').length;
+const stat1Rate = stat1Total ? ((stat1Hit / stat1Total) * 100).toFixed(1) + '%' : '0%';
+
+const valid2 = state.history.filter(x => x.pred2);
+const stat2Total = valid2.length;
+const stat2Hit = valid2.filter(x => x.result2 === 'hit').length;
+const stat2Miss = valid2.filter(x => x.result2 === 'miss').length;
+const stat2Rate = stat2Total ? ((stat2Hit / stat2Total) * 100).toFixed(1) + '%' : '0%';
+
+return {
+stat1Total, stat1Hit, stat1Miss, stat1Rate,
+stat2Total, stat2Hit, stat2Miss, stat2Rate
+};
+}
+
+function resultText(type) {
+if (type === 'hit') return '<span class="ok">準</span>';
+if (type === 'miss') return '<span class="bad">失敗</span>';
+return '<span class="na">無紀錄</span>';
+}
+
+function renderDots() {
+state.currentDots.forEach((v, i) => {
+const el = document.getElementById('dotView' + i);
+el.className = 'dot-view';
+if (v === 'R') el.classList.add('red');
+if (v === 'B') el.classList.add('blue');
+});
+}
+
+function renderPredictions() {
+const pattern = getCurrentPattern();
+document.getElementById('patternText1').textContent = patternToText(pattern);
+document.getElementById('patternText2').textContent = patternToText(pattern);
+
+const pred1 = getPred1(pattern);
+const pred2 = getPred2(pattern);
+
+const p1 = document.getElementById('pred1');
+const p2 = document.getElementById('pred2');
+
+p1.className = 'result-pill';
+p2.className = 'result-pill';
+
+if (!pattern) {
+p1.classList.add('result-none');
+p1.textContent = '未完成';
+} else if (pred1 === 'R') {
+p1.classList.add('result-red');
+p1.textContent = '預測：紅';
+} else if (pred1 === 'B') {
+p1.classList.add('result-blue');
+p1.textContent = '預測：藍';
+} else {
+p1.classList.add('result-none');
+p1.textContent = '無法判定';
+}
+
+if (!pattern) {
+p2.classList.add('result-none');
+p2.textContent = '尚無紀錄';
+} else if (pred2 === 'R') {
+p2.classList.add('result-red');
+p2.textContent = '預測：紅';
+} else if (pred2 === 'B') {
+p2.classList.add('result-blue');
+p2.textContent = '預測：藍';
+} else {
+p2.classList.add('result-none');
+p2.textContent = '尚無紀錄';
+}
+}
+
+function renderStats() {
+const s = calcStats();
+document.getElementById('stat1Total').textContent = s.stat1Total;
+document.getElementById('stat1Hit').textContent = s.stat1Hit;
+document.getElementById('stat1Miss').textContent = s.stat1Miss;
+document.getElementById('stat1Rate').textContent = s.stat1Rate;
+
+document.getElementById('stat2Total').textContent = s.stat2Total;
+document.getElementById('stat2Hit').textContent = s.stat2Hit;
+document.getElementById('stat2Miss').textContent = s.stat2Miss;
+document.getElementById('stat2Rate').textContent = s.stat2Rate;
+}
+
+function renderMemory() {
+const order = ['RRR','RRB','RBR','RBB','BRR','BRB','BBR','BBB'];
+const grid = document.getElementById('memoryGrid');
+grid.innerHTML = '';
+
+order.forEach(p => {
+const value = state.patternMemory[p];
+const div = document.createElement('div');
+div.className = 'memory-item';
+div.innerHTML = `<b>${patternToText(p)}</b> → ${
+value === 'R'
+? '<span class="ok">上次後面開紅</span>'
+: value === 'B'
+? '<span class="bad" style="color:#60a5fa;">上次後面開藍</span>'
+: '<span class="na">尚無紀錄</span>'
+}`;
+grid.appendChild(div);
+});
+}
+
+function renderHistory() {
+const box = document.getElementById('historyList');
+box.innerHTML = '';
+
+if (state.history.length === 0) {
+box.innerHTML = '<div class="history-item">目前還沒有紀錄</div>';
+return;
+}
+
+state.history.forEach((row, idx) => {
+const div = document.createElement('div');
+div.className = 'history-item';
+
+div.innerHTML = `
+<div class="history-top">
+<div class="round-badge">第 ${state.history.length - idx} 筆</div>
+<div class="pattern-badge">三點：${patternToText(row.pattern)}</div>
+</div>
+<div class="history-grid">
+<div>紀錄1（紅多藍少）：預測 ${colorText(row.pred1)} ／ ${resultText(row.result1)}</div>
+<div>紀錄2（同組合記憶）：${row.pred2 ? `預測 ${colorText(row.pred2)} ／ ${resultText(row.result2)}` : '<span class="na">尚無上次紀錄</span>'}</div>
+<div>實際結果：<b>${colorText(row.actual)}</b></div>
+</div>
+`;
+box.appendChild(div);
+});
+}
+
+function render() {
+renderDots();
+renderPredictions();
+renderStats();
+renderMemory();
+renderHistory();
+}
+
+loadState();
+render();
+</script>
+</body>
+</html>
